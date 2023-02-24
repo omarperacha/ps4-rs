@@ -8,7 +8,7 @@ use serde::Serialize;
 
 use crate::common::levenshtein::*;
 
-pub fn get_input_seqs(in_path: String, out_path: String) {
+pub fn get_input_seqs(in_path: String, out_path: String) -> bool {
 
     let pool = rayon::ThreadPoolBuilder::new().num_threads(8).build().unwrap();
 
@@ -99,21 +99,8 @@ pub fn get_input_seqs(in_path: String, out_path: String) {
 
     write_csv(&out_path, deduped_chains, res_unlocked, ss_unlocked, first_res_unlocked);
 
-}
+    true
 
-
-pub fn mutual_protein_code_filter(a_codes: HashSet<String>, b_codes: HashSet<String>) {
-    let mut filtered = HashSet::new();
-
-    for code in a_codes {
-        if b_codes.contains(&code) {
-            filtered.insert(code);
-        }
-    }
-
-    println!("{}", filtered.len());
-    let serialized = serde_pickle::to_vec(&filtered, Default::default()).unwrap();
-    fs::write("./res/95_si_filtered_cath_dssp_proteins.pkl", serialized).expect("Unable to write file");
 }
 
 // MARK: - RESIDUE data

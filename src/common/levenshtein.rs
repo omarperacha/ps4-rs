@@ -2,11 +2,11 @@ use std::fs::File;
 use std::sync::Mutex;
 use edit_distance::edit_distance;
 
-pub fn compare_sets(in_set: &str, compare_set: &str, threshold: Option<f32>) {
+pub fn compare_sets(in_set: &str, compare_set: &str, threshold: Option<f32>) -> bool {
 
     let pool = rayon::ThreadPoolBuilder::new().num_threads(8).build().unwrap();
 
-    let thresh = threshold.unwrap_or(20.0);
+    let thresh = threshold.unwrap_or(40.0);
 
     let mut i_df = load_csv(in_set);
 
@@ -58,6 +58,8 @@ pub fn compare_sets(in_set: &str, compare_set: &str, threshold: Option<f32>) {
 
     print!("\nDONE - pct below: {}, mean above: {}", pct_all, mean_all);
 
+    true
+
 }
 
 pub fn is_above_thresh_with_set(in_seq: &str, compare_set: &str, threshold: Option<f32>) -> bool {
@@ -108,12 +110,6 @@ fn load_csv(path: &str) -> csv::Reader<File> {
     let rdr = csv::Reader::from_reader(file);
 
     return rdr
-}
-
-fn mean(vec: Vec<f32>) -> f32 {
-    let sum: f32 = vec.iter().sum();
-    let count = vec.len() as f32;
-    sum / count
 }
 
 fn mean_above_thresh(vec: Vec<f32>) -> (f32, f32) {
