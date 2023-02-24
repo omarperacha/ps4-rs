@@ -8,12 +8,11 @@ use serde::Serialize;
 
 use crate::common::levenshtein::*;
 
-pub fn get_input_seqs() {
+pub fn get_input_seqs(in_path: String, out_path: String) {
 
     let pool = rayon::ThreadPoolBuilder::new().num_threads(8).build().unwrap();
 
-    let path_str = get_dssp_dir();
-    let dir = &Path::new(&path_str);
+    let dir = &Path::new(&in_path);
     let res_all = Mutex::new(HashMap::new());
     let ss_all = Mutex::new(HashMap::new());
     let first_res_num_all = Mutex::new(HashMap::new());
@@ -98,31 +97,10 @@ pub fn get_input_seqs() {
     let serialized = serde_pickle::to_vec(&deduped_chains, Default::default()).unwrap();
     fs::write("./res/final_deduped_filter.pkl", serialized).expect("Unable to write file");
 
-    write_csv(deduped_chains, res_unlocked, ss_unlocked, first_res_unlocked);
+    write_csv(&out_path, deduped_chains, res_unlocked, ss_unlocked, first_res_unlocked);
 
 }
 
-
-pub fn filter_dssp_by(protein_codes: HashSet<String>) {
-
-    let dir = get_dssp_dir();
-    let mut filtered = HashSet::new();
-
-    for entry in fs::read_dir(dir).unwrap() {
-        let entry = entry.unwrap();
-        let path = entry.path().into_os_string().into_string().unwrap();
-        let file = path.split("/").last().unwrap().to_owned();
-        let pdb_code = file.split(".").next().unwrap().to_owned();
-        if protein_codes.contains(&pdb_code) {
-            println!("{}", pdb_code);
-            filtered.insert(pdb_code);
-        }
-    }
-
-    println!("{}", filtered.len());
-    let serialized = serde_pickle::to_vec(&filtered, Default::default()).unwrap();
-    fs::write("./res/dssp_filtered_cath_proteins.pkl", serialized).expect("Unable to write file");
-}
 
 pub fn mutual_protein_code_filter(a_codes: HashSet<String>, b_codes: HashSet<String>) {
     let mut filtered = HashSet::new();
@@ -137,11 +115,6 @@ pub fn mutual_protein_code_filter(a_codes: HashSet<String>, b_codes: HashSet<Str
     let serialized = serde_pickle::to_vec(&filtered, Default::default()).unwrap();
     fs::write("./res/95_si_filtered_cath_dssp_proteins.pkl", serialized).expect("Unable to write file");
 }
-
-// MARK: - Private
-fn get_dssp_dir() -> String {
-    "/Users/omarperacha/protein/dssp/".to_owned()
-} 
 
 // MARK: - RESIDUE data
 fn get_dssp_data(dssp: &str, pdb_code: &str) -> Vec<(String, i32, Vec<char>, Vec<char>)> {
@@ -396,9 +369,15 @@ struct Row<'a> {
     dssp8: &'a str,
 }
 
-fn write_csv(chains: HashSet<String>, res: HashMap<String, Vec<char>>, ss: HashMap<String, Vec<char>>, first_res: HashMap<String, i32>) {
+fn write_csv(
+    out_path: &str,
+    chains: HashSet<String>, 
+    res: HashMap<String, Vec<char>>, 
+    ss: HashMap<String, Vec<char>>, 
+    first_res: HashMap<String, i32>) 
+    {
 
-    let path = "./res/dssp/data.csv";
+    let path = out_path;
     if Path::new(path).exists() {
         fs::remove_file(path).unwrap();
     }
