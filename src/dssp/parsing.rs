@@ -35,9 +35,8 @@ pub fn get_input_seqs(in_path: String, out_path: String) -> bool {
                     
                     // vector of strings
                     let sets_to_dedupe = vec![
-                        "cb513",
-                        "ps4",
-                        "ps4_extended"
+                        "ps4_data/data/cb513/CB513_HHblits.csv",
+                        "ps4_data/data/data.csv"
                     ];
 
                     let mut f = first_res_num_all.lock().unwrap();
