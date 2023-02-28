@@ -56,7 +56,7 @@ pub fn compare_sets(in_set: &str, compare_set: &str, threshold: Option<f32>) -> 
 
     let (mean_all, pct_all) = mean_above_thresh(dists.into_inner().unwrap());
 
-    print!("\nDONE - pct below: {}, mean above: {}", pct_all, mean_all);
+    println!("\nDONE - pct below: {}, mean above: {}", pct_all, mean_all);
 
     true
 

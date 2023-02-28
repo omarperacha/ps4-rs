@@ -12,6 +12,8 @@ pub fn get_input_seqs(in_path: String, out_path: String) -> bool {
 
     let pool = rayon::ThreadPoolBuilder::new().num_threads(8).build().unwrap();
 
+    println!("{}", in_path);
+
     let dir = &Path::new(&in_path);
     let res_all = Mutex::new(HashMap::new());
     let ss_all = Mutex::new(HashMap::new());
@@ -94,7 +96,6 @@ pub fn get_input_seqs(in_path: String, out_path: String) -> bool {
     println!("\nDEDUPED CHAINS FINAL COUNT: {}", deduped_chains.len());
 
     let serialized = serde_pickle::to_vec(&deduped_chains, Default::default()).unwrap();
-    fs::write("./res/final_deduped_filter.pkl", serialized).expect("Unable to write file");
 
     write_csv(&out_path, deduped_chains, res_unlocked, ss_unlocked, first_res_unlocked);
 
