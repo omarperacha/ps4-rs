@@ -20,16 +20,38 @@ pub fn compare_sets(in_set: &str, compare_set: &str, threshold: Option<f32>) -> 
         for i_result in i_df.records() {
 
             s.spawn(move | _s| {
-
+                let mut i_column = -1;
+                let mut i_input_column_idx = -1;
                 let i_record = i_result.unwrap();
                 let mut c_df = load_csv(compare_set);
 
                 let mut min_dist = 100.0;
 
                 for i_str in i_record.iter() {
+                    i_column += 1;
+
+                    if i_str == "input" {
+                        i_input_column_idx = i_column;
+                    }
+
+                    if i_input_column_idx != i_column {
+                        continue;
+                    }
+
                     for c_result in c_df.records() {
+                        let mut c_column = -1;
+                        let mut c_input_column_idx = -1;
                         let c_record = c_result.unwrap();
                         for c_str in c_record.iter() {
+                            c_column += 1;
+
+                            if c_str == "input" {
+                                c_input_column_idx = c_column;
+                            }
+
+                            if c_input_column_idx != c_column {
+                                continue;
+                            }
 
                             let i_clean = i_str.replace(" ", "");
                             let c_clean = c_str.replace(" ", "");
@@ -71,8 +93,20 @@ pub fn is_above_thresh_with_set(in_seq: &str, compare_set: &str, threshold: Opti
     let thresh = threshold.unwrap_or(20.0);
 
     for c_result in c_df.records() {
+        let mut c_column = -1;
+        let mut c_input_column_idx = -1;
         let c_record = c_result.unwrap();
         for c_str in c_record.iter() {
+            
+            c_column += 1;
+
+            if c_str == "input" {
+                c_input_column_idx = c_column;
+            }
+
+            if c_input_column_idx != c_column {
+                continue;
+            }
 
             let i_clean = in_seq.replace(" ", "");
             let c_clean = c_str.replace(" ", "");
