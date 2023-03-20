@@ -1,4 +1,5 @@
 use std::fs::File;
+use std::collections::HashMap;
 use std::sync::Mutex;
 use edit_distance::edit_distance;
 
@@ -16,40 +17,39 @@ pub fn compare_sets(in_set: &str, compare_set: &str, threshold: Option<f32>) -> 
 
         let dists = &dists;
         
-        
-        for i_result in i_df.records() {
+        for i_result in i_df.deserialize() {
 
             s.spawn(move | _s| {
-
-                let i_record = i_result.unwrap();
+                let i_record: HashMap<String, String>  = i_result.unwrap();
                 let mut c_df = load_csv(compare_set);
 
                 let mut min_dist = 100.0;
 
-                for i_str in i_record.iter() {
-                    for c_result in c_df.records() {
-                        let c_record = c_result.unwrap();
-                        for c_str in c_record.iter() {
+                let i_str = i_record["input"].to_string(); 
 
-                            let i_clean = i_str.replace(" ", "");
-                            let c_clean = c_str.replace(" ", "");
+                for c_result in c_df.deserialize() {
 
-                            let dist = edit_distance(&i_clean, &c_clean);
-                            let pct = 100.0 * dist as f32 / i_clean.len() as f32;
-                            min_dist = if pct < min_dist {pct} else {min_dist};
-                            break;
-                        }
-                        if min_dist < thresh { 
-                            min_dist = 0.0;
-                            break 
-                        };
-                    }
-                    let mut d = dists.lock().unwrap();
-                    println!("i: {}", d.len());
-                    println!("\t{}", min_dist);
-                    d.push(min_dist);
-                    break;
+                    let c_record: HashMap<String, String>  = c_result.unwrap();
+                    let c_str = c_record["input"].to_string();
+
+                    let i_clean = i_str.replace(" ", "");
+                    let c_clean = c_str.replace(" ", "");
+
+                    let dist = edit_distance(&i_clean, &c_clean);
+                    let pct = 100.0 * dist as f32 / i_clean.len() as f32;
+                    min_dist = if pct < min_dist {pct} else {min_dist};
+                    
+                    if min_dist < thresh { 
+                        min_dist = 0.0;
+                        break 
+                    };
                 }
+
+                let mut d = dists.lock().unwrap();
+                println!("i: {}", d.len());
+                println!("\t{}", min_dist);
+                d.push(min_dist);
+                
             });
         }
     });
@@ -70,18 +70,17 @@ pub fn is_above_thresh_with_set(in_seq: &str, compare_set: &str, threshold: Opti
 
     let thresh = threshold.unwrap_or(20.0);
 
-    for c_result in c_df.records() {
-        let c_record = c_result.unwrap();
-        for c_str in c_record.iter() {
+    for c_result in c_df.deserialize() {
+        let c_record: HashMap<String, String>  = c_result.unwrap();
+        let c_str = c_record["input"].to_string();
 
-            let i_clean = in_seq.replace(" ", "");
-            let c_clean = c_str.replace(" ", "");
+        let i_clean = in_seq.replace(" ", "");
+        let c_clean = c_str.replace(" ", "");
 
-            let dist = edit_distance(&i_clean, &c_clean);
-            let pct = 100.0 * dist as f32 / i_clean.len() as f32;
-            min_dist = if pct < min_dist {pct} else {min_dist};
-            break;
-        }
+        let dist = edit_distance(&i_clean, &c_clean);
+        let pct = 100.0 * dist as f32 / i_clean.len() as f32;
+        min_dist = if pct < min_dist {pct} else {min_dist};
+        
         if min_dist < thresh { 
             return false; 
         };
